@@ -19,7 +19,8 @@ router.get("/mine", protect, async (req, res) => {
 
 router.get("/history", protect, async (req, res) => {
   try {
-    const history = await Reservation.find({ user: req.user._id, status: "paid" }).sort({ createdAt: -1 }).limit(20);
+    const history = await Reservation.find({ user: req.user._id, status: "paid" })
+      .sort({ createdAt: -1 }).limit(20);
     res.json(history);
   } catch (err) {
     res.status(500).json({ message: "Erro.", error: err.message });
@@ -28,7 +29,7 @@ router.get("/history", protect, async (req, res) => {
 
 router.post("/", protect, async (req, res) => {
   try {
-    const { spotId, startTimeStr, placa, modelo } = req.body;
+    const { spotId, startTimeStr, startDate, placa, modelo } = req.body;
     if (!spotId || !startTimeStr)
       return res.status(400).json({ message: "spotId e startTimeStr são obrigatórios." });
 
@@ -42,13 +43,26 @@ router.post("/", protect, async (req, res) => {
     if (spot.status !== "available" && spot.status !== "preferential")
       return res.status(400).json({ message: "Esta vaga não está disponível." });
 
-    const [h, m]    = startTimeStr.split(":").map(Number);
-    const startTime = new Date();
-    startTime.setHours(h, m, 0, 0);
+    // Monta a data/hora corretamente usando a data enviada
+    let startTime;
+    if (startDate) {
+      const [y, mo, d] = startDate.split("-").map(Number);
+      const [h, m]     = startTimeStr.split(":").map(Number);
+      startTime = new Date(y, mo - 1, d, h, m, 0, 0);
+    } else {
+      const [h, m] = startTimeStr.split(":").map(Number);
+      startTime = new Date();
+      startTime.setHours(h, m, 0, 0);
+    }
+
+    // Se a data/hora for passada, usa o momento atual
+    const now = new Date();
+    if (startTime < now) startTime = now;
 
     const reservation = await Reservation.create({
       user: req.user._id, spot: spot._id, spotNumber: spot.spotNumber,
-      startTime, startTimeStr, placa: placa || "", modelo: modelo || "",
+      startTime, startTimeStr,
+      placa: placa || "", modelo: modelo || "",
     });
 
     spot.status            = "reserved";
@@ -77,9 +91,9 @@ router.post("/:id/pay", protect, async (req, res) => {
     if (reservation.status !== "active")
       return res.status(400).json({ message: "Reserva já encerrada." });
 
-    const now          = new Date();
-    const elapsedSecs  = Math.max(0, Math.floor((now - new Date(reservation.startTime)) / 1000));
-    const totalPrice   = parseFloat(((elapsedSecs / 3600) * PRICE_PER_HOUR).toFixed(2));
+    const now         = new Date();
+    const elapsedSecs = Math.max(0, Math.floor((now - new Date(reservation.startTime)) / 1000));
+    const totalPrice  = parseFloat(((elapsedSecs / 3600) * PRICE_PER_HOUR).toFixed(2));
 
     reservation.status       = "paid";
     reservation.endTime      = now;
@@ -93,7 +107,9 @@ router.post("/:id/pay", protect, async (req, res) => {
     spot.activeReservation = null;
     await spot.save();
 
-    await User.findByIdAndUpdate(req.user._id, { $inc: { totalReservas: 1, totalGasto: totalPrice } });
+    await User.findByIdAndUpdate(req.user._id, {
+      $inc: { totalReservas: 1, totalGasto: totalPrice },
+    });
 
     await AccessLog.create({
       user: req.user._id, email: req.user.email,
