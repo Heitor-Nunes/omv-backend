@@ -1,26 +1,20 @@
 const Spot = require("../models/Spot");
 
+// 12 vagas — 3 por avenida
+// A1-A3 | B4-B6 | C7-C9 | D10-D12 (D = preferenciais)
 const SPOTS = [
   { spotNumber:1,  row:"A", originalStatus:"available"    },
   { spotNumber:2,  row:"A", originalStatus:"available"    },
   { spotNumber:3,  row:"A", originalStatus:"available"    },
-  { spotNumber:4,  row:"A", originalStatus:"available"    },
-  { spotNumber:5,  row:"A", originalStatus:"available"    },
+  { spotNumber:4,  row:"B", originalStatus:"available"    },
+  { spotNumber:5,  row:"B", originalStatus:"available"    },
   { spotNumber:6,  row:"B", originalStatus:"available"    },
-  { spotNumber:7,  row:"B", originalStatus:"available"    },
-  { spotNumber:8,  row:"B", originalStatus:"available"    },
-  { spotNumber:9,  row:"B", originalStatus:"available"    },
-  { spotNumber:10, row:"B", originalStatus:"available"    },
-  { spotNumber:11, row:"C", originalStatus:"available"    },
-  { spotNumber:12, row:"C", originalStatus:"available"    },
-  { spotNumber:13, row:"C", originalStatus:"available"    },
-  { spotNumber:14, row:"C", originalStatus:"available"    },
-  { spotNumber:15, row:"C", originalStatus:"available"    },
-  { spotNumber:16, row:"D", originalStatus:"preferential" },
-  { spotNumber:17, row:"D", originalStatus:"preferential" },
-  { spotNumber:18, row:"D", originalStatus:"preferential" },
-  { spotNumber:19, row:"D", originalStatus:"preferential" },
-  { spotNumber:20, row:"D", originalStatus:"preferential" },
+  { spotNumber:7,  row:"C", originalStatus:"available"    },
+  { spotNumber:8,  row:"C", originalStatus:"available"    },
+  { spotNumber:9,  row:"C", originalStatus:"available"    },
+  { spotNumber:10, row:"D", originalStatus:"preferential" },
+  { spotNumber:11, row:"D", originalStatus:"preferential" },
+  { spotNumber:12, row:"D", originalStatus:"preferential" },
 ];
 
 module.exports = async function seedSpots() {
@@ -30,5 +24,5 @@ module.exports = async function seedSpots() {
     return;
   }
   await Spot.insertMany(SPOTS.map(s => ({ ...s, status: s.originalStatus })));
-  console.log("🅿️  20 vagas criadas.");
+  console.log("🅿️  12 vagas criadas.");
 };
