@@ -11,7 +11,16 @@ const reservationSchema = new mongoose.Schema({
   endTime:      { type: Date, default: null },
   totalSeconds: { type: Number, default: 0 },
   totalPrice:   { type: Number, default: 0 },
-  status:       { type: String, enum: ["active","paid","cancelled"], default: "active" },
+  reservationFee:{ type: Number, default: 10 },
+  feePaid:      { type: Boolean, default: false },
+  feeRefunded:  { type: Boolean, default: false },
+  noShowAt:     { type: Date, default: null },
+  cancelledAt:  { type: Date, default: null },
+  status: {
+    type: String,
+    enum: ["active", "paid", "cancelled", "no_show"],
+    default: "active",
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Reservation", reservationSchema);
