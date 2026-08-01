@@ -1,6 +1,6 @@
 const express = require("express");
 const Spot    = require("../models/Spot");
-const { protect } = require("../middleware/auth");
+const { protect, adminOnly } = require("../middleware/auth"); // <-- Adicionado adminOnly aqui
 
 const router = express.Router();
 
