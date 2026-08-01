@@ -1,7 +1,6 @@
 const express = require("express");
 const Spot    = require("../models/Spot");
 const { protect, adminOnly } = require("../middleware/auth"); // <-- Adicionado adminOnly aqui
-
 const router = express.Router();
 
 router.get("/", protect, async (req, res) => {
@@ -10,6 +9,16 @@ router.get("/", protect, async (req, res) => {
     res.json(spots);
   } catch (err) {
     res.status(500).json({ message: "Erro ao buscar vagas.", error: err.message });
+  }
+});
+ 
+// Rota pública para o ESP32 consultar as vagas sem precisar de token
+router.get("/public", async (req, res) => {
+  try {
+    const spots = await Spot.find().sort({ spotNumber: 1 });
+    res.json(spots);
+  } catch (err) {
+    res.status(500).json({ message: "Erro ao buscar vagas públicas.", error: err.message });
   }
 });
 
