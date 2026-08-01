@@ -33,5 +33,28 @@ router.post("/sensor", async (req, res) => {
     res.status(500).json({ message: "Erro ao atualizar sensor.", error: err.message });
   }
 });
+// Libera ou ocupa todas as vagas de uma vez
+router.post("/reset", protect, adminOnly, async (req, res) => {
+  try {
+    const { occupied } = req.body;
+    const novoStatus = occupied ? "occupied" : "available";
+
+    const spots = await Spot.find();
+    for (const spot of spots) {
+      // Preferenciais voltam para "preferential" quando liberadas
+      if (!occupied && spot.originalStatus === "preferential") {
+        spot.status = "preferential";
+      } else {
+        spot.status = novoStatus;
+      }
+      spot.sensorOccupied = occupied;
+      await spot.save();
+    }
+
+    res.json({ message: `Todas as vagas ${occupied ? "ocupadas" : "liberadas"}.` });
+  } catch (err) {
+    res.status(500).json({ message: "Erro.", error: err.message });
+  }
+});
 
 module.exports = router;
